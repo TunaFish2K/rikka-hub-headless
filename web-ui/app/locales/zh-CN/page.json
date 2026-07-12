@@ -42,6 +42,11 @@
     "back": "返回设置",
     "save": "保存",
     "saving": "保存中...",
+    "groups": { "general": "常规设置", "models_services": "模型与服务", "data": "数据与 Headless" },
+    "provider_detail": { "advanced": "服务商高级设置", "chat_path": "Chat Completions 路径", "responses_api": "使用 Responses API", "history_reasoning": "包含历史推理内容", "vertex": "Vertex AI", "service_account": "使用服务账号", "project_id": "项目 ID", "location": "区域", "service_email": "服务账号邮箱", "private_key": "私钥", "prompt_cache": "提示词缓存", "cache_ttl": "缓存有效期", "five_minutes": "5 分钟", "one_hour": "1 小时", "balance": "启用余额查询", "balance_path": "余额 API 路径", "result_path": "结果 JSON 路径", "add_model": "添加模型", "edit_model": "编辑模型", "model_desc": "配置模型标识、模态、能力和内置工具。", "model_required": "模型 ID 和显示名称不能为空", "model_id": "模型 ID", "display_name": "显示名称", "model_type": "模型类型", "input_modalities": "输入模态", "output_modalities": "输出模态", "abilities": "能力", "built_in_tools": "内置工具", "apply": "应用" },
+    "mcp_full": { "import": "导入 JSON", "import_title": "导入 MCP 配置", "import_desc": "粘贴一个服务器对象或服务器对象数组。", "transport": "传输方式", "url": "服务器 URL", "headers": "自定义请求头", "add_header": "添加请求头", "header_name": "请求头名称", "header_value": "请求头值" },
+    "preferences_full": { "nickname": "用户昵称", "loading": "使用应用图标加载动画", "assistant_bubble": "显示助手气泡", "bubble_opacity": "气泡透明度", "datetime": "显示消息日期和时间", "jumper": "显示消息跳转按钮", "jumper_left": "消息跳转按钮置于左侧", "blur": "启用模糊效果", "tts_quoted": "TTS 仅朗读引用内容", "tts_auto": "生成后自动播放 TTS" },
+    "search_fields": { "apiKey": "API 密钥", "depth": "搜索深度", "url": "服务地址", "engines": "搜索引擎", "language": "语言", "username": "用户名", "password": "密码", "maxTokens": "最大 Token 数", "maxTokensPerPage": "每页最大 Token 数", "searchUrl": "搜索地址", "scrapeUrl": "抓取地址", "summary": "生成摘要", "model": "模型", "customUrl": "自定义地址", "systemPrompt": "系统提示词", "name": "名称", "searchScript": "搜索脚本", "scrapeScript": "抓取脚本" },
     "categories": {
       "providers": ["服务商", "配置 OpenAI、Google、Claude 等 AI API 服务商"],
       "models": ["模型", "为聊天、快速响应、标题、翻译等任务分配模型"],

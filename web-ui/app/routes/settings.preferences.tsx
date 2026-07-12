@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { ArrowLeft, SlidersHorizontal } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -14,6 +15,7 @@ import type { Settings } from "~/types";
 
 export default function SettingsPreferencesPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation("page");
   const settings = useSettingsStore((state) => state.settings);
 
   const [developerMode, setDeveloperMode] = React.useState(false);
@@ -21,10 +23,17 @@ export default function SettingsPreferencesPage() {
   const [enableSuggestion, setEnableSuggestion] = React.useState(false);
   const [translateThinkingBudget, setTranslateThinkingBudget] = React.useState("");
   const [fontSizeRatio, setFontSizeRatio] = React.useState("");
+  const [userNickname, setUserNickname] = React.useState("");
+  const [useAppIconStyleLoadingIndicator, setUseAppIconStyleLoadingIndicator] = React.useState(true);
   const [sendOnEnter, setSendOnEnter] = React.useState(true);
   const [showUserAvatar, setShowUserAvatar] = React.useState(true);
   const [showModelName, setShowModelName] = React.useState(true);
   const [showModelIcon, setShowModelIcon] = React.useState(true);
+  const [showAssistantBubble, setShowAssistantBubble] = React.useState(false);
+  const [bubbleOpacity, setBubbleOpacity] = React.useState("1");
+  const [showDateTimeInMessage, setShowDateTimeInMessage] = React.useState(false);
+  const [showMessageJumper, setShowMessageJumper] = React.useState(true);
+  const [messageJumperOnLeft, setMessageJumperOnLeft] = React.useState(false);
   const [showTokenUsage, setShowTokenUsage] = React.useState(false);
   const [showThinkingContent, setShowThinkingContent] = React.useState(true);
   const [autoCloseThinking, setAutoCloseThinking] = React.useState(false);
@@ -33,6 +42,9 @@ export default function SettingsPreferencesPage() {
   const [showLineNumbers, setShowLineNumbers] = React.useState(false);
   const [enableAutoScroll, setEnableAutoScroll] = React.useState(true);
   const [enableLatexRendering, setEnableLatexRendering] = React.useState(true);
+  const [enableBlurEffect, setEnableBlurEffect] = React.useState(false);
+  const [ttsOnlyReadQuoted, setTtsOnlyReadQuoted] = React.useState(false);
+  const [autoPlayTTSAfterGeneration, setAutoPlayTTSAfterGeneration] = React.useState(false);
   const [pasteLongTextAsFile, setPasteLongTextAsFile] = React.useState(false);
   const [pasteLongTextThreshold, setPasteLongTextThreshold] = React.useState("");
   const [chatFontFamily, setChatFontFamily] = React.useState("default");
@@ -46,10 +58,17 @@ export default function SettingsPreferencesPage() {
     setEnableSuggestion(settings.enableSuggestion ?? false);
     setTranslateThinkingBudget(settings.translateThinkingBudget != null ? String(settings.translateThinkingBudget) : "");
     setFontSizeRatio(settings.displaySetting?.fontSizeRatio != null ? String(settings.displaySetting.fontSizeRatio) : "");
+    setUserNickname(settings.displaySetting?.userNickname ?? "");
+    setUseAppIconStyleLoadingIndicator(settings.displaySetting?.useAppIconStyleLoadingIndicator ?? true);
     setSendOnEnter(settings.displaySetting?.sendOnEnter ?? true);
     setShowUserAvatar(settings.displaySetting?.showUserAvatar ?? true);
     setShowModelName(settings.displaySetting?.showModelName ?? true);
     setShowModelIcon(settings.displaySetting?.showModelIcon ?? true);
+    setShowAssistantBubble(settings.displaySetting?.showAssistantBubble ?? false);
+    setBubbleOpacity(String(settings.displaySetting?.bubbleOpacity ?? 1));
+    setShowDateTimeInMessage(settings.displaySetting?.showDateTimeInMessage ?? false);
+    setShowMessageJumper(settings.displaySetting?.showMessageJumper ?? true);
+    setMessageJumperOnLeft(settings.displaySetting?.messageJumperOnLeft ?? false);
     setShowTokenUsage(settings.displaySetting?.showTokenUsage ?? false);
     setShowThinkingContent(settings.displaySetting?.showThinkingContent ?? true);
     setAutoCloseThinking(settings.displaySetting?.autoCloseThinking ?? false);
@@ -58,6 +77,9 @@ export default function SettingsPreferencesPage() {
     setShowLineNumbers(settings.displaySetting?.showLineNumbers ?? false);
     setEnableAutoScroll(settings.displaySetting?.enableAutoScroll ?? true);
     setEnableLatexRendering(settings.displaySetting?.enableLatexRendering ?? true);
+    setEnableBlurEffect(settings.displaySetting?.enableBlurEffect ?? false);
+    setTtsOnlyReadQuoted(settings.displaySetting?.ttsOnlyReadQuoted ?? false);
+    setAutoPlayTTSAfterGeneration(settings.displaySetting?.autoPlayTTSAfterGeneration ?? false);
     setPasteLongTextAsFile(settings.displaySetting?.pasteLongTextAsFile ?? false);
     setPasteLongTextThreshold(
       settings.displaySetting?.pasteLongTextThreshold != null
@@ -94,10 +116,17 @@ export default function SettingsPreferencesPage() {
       const displaySetting = {
         ...settings.displaySetting,
         fontSizeRatio: fontSizeRatio ? parseFloat(fontSizeRatio) : 1,
+        userNickname,
+        useAppIconStyleLoadingIndicator,
         sendOnEnter,
         showUserAvatar,
         showModelName,
         showModelIcon,
+        showAssistantBubble,
+        bubbleOpacity: Math.min(1, Math.max(0, parseFloat(bubbleOpacity) || 0)),
+        showDateTimeInMessage,
+        showMessageJumper,
+        messageJumperOnLeft,
         showTokenUsage,
         showThinkingContent,
         autoCloseThinking,
@@ -106,6 +135,9 @@ export default function SettingsPreferencesPage() {
         showLineNumbers,
         enableAutoScroll,
         enableLatexRendering,
+        enableBlurEffect,
+        ttsOnlyReadQuoted,
+        autoPlayTTSAfterGeneration,
         pasteLongTextAsFile,
         pasteLongTextThreshold: pasteLongTextThreshold ? parseInt(pasteLongTextThreshold, 10) : 500,
         chatFontFamily,
@@ -161,6 +193,16 @@ export default function SettingsPreferencesPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
+            <div className="grid gap-2">
+              <label className="text-sm font-medium">{t("settings.preferences_full.nickname")}</label>
+              <Input value={userNickname} onChange={(e) => setUserNickname(e.target.value)} />
+            </div>
+            <Separator />
+            <div className="flex items-center justify-between">
+              <label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.loading")}</label>
+              <Switch checked={useAppIconStyleLoadingIndicator} onCheckedChange={setUseAppIconStyleLoadingIndicator} />
+            </div>
+            <Separator />
             <div className="flex items-center justify-between">
               <label className="cursor-pointer text-sm font-medium">Developer Mode</label>
               <Switch checked={developerMode} onCheckedChange={setDeveloperMode} />
@@ -234,6 +276,17 @@ export default function SettingsPreferencesPage() {
             </div>
             <Separator />
             <div className="flex items-center justify-between">
+              <label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.assistant_bubble")}</label>
+              <Switch checked={showAssistantBubble} onCheckedChange={setShowAssistantBubble} />
+            </div>
+            {showAssistantBubble && <div className="grid gap-2"><label className="text-sm font-medium">{t("settings.preferences_full.bubble_opacity")}</label><Input type="number" min={0} max={1} step={0.05} value={bubbleOpacity} onChange={(e) => setBubbleOpacity(e.target.value)} className="w-32" /></div>}
+            <Separator />
+            <div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.datetime")}</label><Switch checked={showDateTimeInMessage} onCheckedChange={setShowDateTimeInMessage} /></div>
+            <Separator />
+            <div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.jumper")}</label><Switch checked={showMessageJumper} onCheckedChange={setShowMessageJumper} /></div>
+            {showMessageJumper && <div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.jumper_left")}</label><Switch checked={messageJumperOnLeft} onCheckedChange={setMessageJumperOnLeft} /></div>}
+            <Separator />
+            <div className="flex items-center justify-between">
               <label className="cursor-pointer text-sm font-medium">Show Token Usage</label>
               <Switch checked={showTokenUsage} onCheckedChange={setShowTokenUsage} />
             </div>
@@ -272,6 +325,12 @@ export default function SettingsPreferencesPage() {
               <label className="cursor-pointer text-sm font-medium">Enable LaTeX Rendering</label>
               <Switch checked={enableLatexRendering} onCheckedChange={setEnableLatexRendering} />
             </div>
+            <Separator />
+            <div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.blur")}</label><Switch checked={enableBlurEffect} onCheckedChange={setEnableBlurEffect} /></div>
+            <Separator />
+            <div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.tts_quoted")}</label><Switch checked={ttsOnlyReadQuoted} onCheckedChange={setTtsOnlyReadQuoted} /></div>
+            <Separator />
+            <div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.preferences_full.tts_auto")}</label><Switch checked={autoPlayTTSAfterGeneration} onCheckedChange={setAutoPlayTTSAfterGeneration} /></div>
             <Separator />
             <div className="flex items-center justify-between">
               <label className="cursor-pointer text-sm font-medium">Paste Long Text as File</label>

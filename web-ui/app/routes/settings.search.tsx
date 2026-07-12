@@ -1,6 +1,7 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
-import { ArrowLeft, Globe, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, Globe, Plus, Save, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 
 import { Button } from "~/components/ui/button";
@@ -50,8 +51,26 @@ const SEARCH_TYPES = [
   "custom_js",
 ];
 
+const SEARCH_FIELDS: Record<string, Array<{ key: string; label: string; secret?: boolean; multiline?: boolean; number?: boolean }>> = {
+  zhipu: [{ key: "apiKey", label: "API Key", secret: true }],
+  tavily: [{ key: "apiKey", label: "API Key", secret: true }, { key: "depth", label: "Depth" }],
+  exa: [{ key: "apiKey", label: "API Key", secret: true }],
+  searxng: [{ key: "url", label: "URL" }, { key: "engines", label: "Engines" }, { key: "language", label: "Language" }, { key: "username", label: "Username" }, { key: "password", label: "Password", secret: true }],
+  linkup: [{ key: "apiKey", label: "API Key", secret: true }, { key: "depth", label: "Depth" }],
+  brave: [{ key: "apiKey", label: "API Key", secret: true }], metaso: [{ key: "apiKey", label: "API Key", secret: true }], ollama: [{ key: "apiKey", label: "API Key", secret: true }],
+  perplexity: [{ key: "apiKey", label: "API Key", secret: true }, { key: "maxTokens", label: "Max Tokens", number: true }, { key: "maxTokensPerPage", label: "Max Tokens Per Page", number: true }],
+  firecrawl: [{ key: "apiKey", label: "API Key", secret: true }],
+  jina: [{ key: "apiKey", label: "API Key", secret: true }, { key: "searchUrl", label: "Search URL" }, { key: "scrapeUrl", label: "Scrape URL" }],
+  bocha: [{ key: "apiKey", label: "API Key", secret: true }, { key: "summary", label: "Summary" }],
+  rikkahub: [{ key: "apiKey", label: "API Key", secret: true }, { key: "depth", label: "Depth" }],
+  grok: [{ key: "apiKey", label: "API Key", secret: true }, { key: "model", label: "Model" }, { key: "customUrl", label: "Custom URL" }, { key: "systemPrompt", label: "System Prompt", multiline: true }],
+  tinyfish: [{ key: "apiKey", label: "API Key", secret: true }], serper: [{ key: "apiKey", label: "API Key", secret: true }],
+  custom_js: [{ key: "name", label: "Name" }, { key: "searchScript", label: "Search Script", multiline: true }, { key: "scrapeScript", label: "Scrape Script", multiline: true }],
+};
+
 export default function SettingsSearchPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation("page");
   const settings = useSettingsStore((state) => state.settings);
   const setSettings = useSettingsStore((state) => state.setSettings);
 
@@ -59,6 +78,7 @@ export default function SettingsSearchPage() {
   const [newType, setNewType] = React.useState("tavily");
   const [newApiKey, setNewApiKey] = React.useState("");
   const [deleteConfirmId, setDeleteConfirmId] = React.useState<string | null>(null);
+  const [drafts, setDrafts] = React.useState<Record<string, SearchServiceOption>>({});
 
   const searchServices = settings?.searchServices ?? [];
   const searchSelected = settings?.searchServiceSelected ?? 0;
@@ -104,6 +124,16 @@ export default function SettingsSearchPage() {
 
   const handleSelectService = async (index: number) => {
     await handleSave({ searchServiceSelected: index });
+  };
+
+  const getDraft = (service: SearchServiceOption) => drafts[service.id] ?? service;
+  const updateDraft = (service: SearchServiceOption, key: string, value: unknown) => {
+    setDrafts((current) => ({ ...current, [service.id]: { ...getDraft(service), [key]: value } }));
+  };
+  const saveService = async (service: SearchServiceOption) => {
+    const updatedService = getDraft(service);
+    await handleSave({ searchServices: searchServices.map((item) => item.id === service.id ? updatedService : item) });
+    setDrafts((current) => { const next = { ...current }; delete next[service.id]; return next; });
   };
 
   const handleCommonOptionsChange = async (resultSize: number) => {
@@ -209,7 +239,8 @@ export default function SettingsSearchPage() {
               key={service.id}
               className={`${index === searchSelected ? "ring-1 ring-primary" : ""}`}
             >
-              <CardContent className="flex items-center justify-between p-4">
+              <CardContent className="space-y-4 p-4">
+                <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <Button
                     variant={index === searchSelected ? "default" : "outline"}
@@ -267,6 +298,16 @@ export default function SettingsSearchPage() {
                     </DialogContent>
                   </Dialog>
                 </div>
+                </div>
+                {(SEARCH_FIELDS[service.type ?? ""] ?? []).length > 0 && <div className="grid gap-3 border-t pt-4 sm:grid-cols-2">
+                  {(SEARCH_FIELDS[service.type ?? ""] ?? []).map((field) => {
+                    const draft = getDraft(service) as Record<string, unknown>;
+                    const label = t(`settings.search_fields.${field.key}`, { defaultValue: field.label });
+                    if (field.key === "summary") return <div key={field.key} className="flex items-center justify-between rounded border p-3"><Label>{label}</Label><Switch checked={draft[field.key] !== false} onCheckedChange={(value) => updateDraft(service, field.key, value)} /></div>;
+                    return <div key={field.key} className={`grid gap-2 ${field.multiline ? "sm:col-span-2" : ""}`}><Label>{label}</Label>{field.multiline ? <textarea className="min-h-32 rounded-md border bg-background p-3 font-mono text-xs" value={String(draft[field.key] ?? "")} onChange={(event) => updateDraft(service, field.key, event.target.value)} /> : <Input type={field.secret ? "password" : field.number ? "number" : "text"} value={String(draft[field.key] ?? "")} onChange={(event) => updateDraft(service, field.key, field.number ? (event.target.value ? Number(event.target.value) : null) : event.target.value)} />}</div>;
+                  })}
+                  <div className="flex justify-end sm:col-span-2"><Button size="sm" onClick={() => saveService(service)} disabled={!drafts[service.id]}><Save className="mr-1 size-4" />Save Service</Button></div>
+                </div>}
               </CardContent>
             </Card>
           ))}

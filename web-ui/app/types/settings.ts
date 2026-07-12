@@ -126,13 +126,15 @@ export interface McpToolOption {
 export interface McpCommonOptions {
   enable: boolean;
   name: string;
+  headers: Array<[string, string]>;
   tools: McpToolOption[];
   [key: string]: unknown;
 }
 
 export interface McpServerConfig {
   id: string;
-  type?: string;
+  type: "sse" | "streamable_http";
+  url: string;
   commonOptions: McpCommonOptions;
   [key: string]: unknown;
 }
@@ -166,6 +168,18 @@ export interface ProviderProfile {
   models: ProviderModel[];
   apiKey?: string;
   baseUrl?: string;
+  chatCompletionsPath?: string;
+  useResponseApi?: boolean;
+  includeHistoryReasoning?: boolean;
+  vertexAI?: boolean;
+  useServiceAccount?: boolean;
+  privateKey?: string;
+  serviceAccountEmail?: string;
+  location?: string;
+  projectId?: string;
+  promptCaching?: boolean;
+  promptCacheTtl?: "5m" | "1h";
+  balanceOption?: { enabled: boolean; apiPath: string; resultPath: string };
   [key: string]: unknown;
 }
 

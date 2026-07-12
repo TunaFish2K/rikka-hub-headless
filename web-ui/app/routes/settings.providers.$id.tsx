@@ -1,6 +1,7 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
-import { ArrowLeft, Puzzle, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Puzzle, Save, Trash2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
@@ -47,14 +48,19 @@ export default function SettingsProviderDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const settings = useSettingsStore((state) => state.settings);
+  const { t } = useTranslation("page");
 
   const [name, setName] = React.useState("");
   const [apiKey, setApiKey] = React.useState("");
   const [baseUrl, setBaseUrl] = React.useState("");
   const [enabled, setEnabled] = React.useState(true);
+  const [advanced, setAdvanced] = React.useState<Record<string, unknown>>({});
   const [models, setModels] = React.useState<ProviderModel[]>([]);
   const [saving, setSaving] = React.useState(false);
   const [deleteModelTarget, setDeleteModelTarget] = React.useState<ProviderModel | null>(null);
+  const [editModelTarget, setEditModelTarget] = React.useState<ProviderModel | null>(null);
+  const [modelDialogOpen, setModelDialogOpen] = React.useState(false);
+  const [modelDraft, setModelDraft] = React.useState<ProviderModel>({ id: "", modelId: "", displayName: "", type: "CHAT", inputModalities: ["TEXT"], outputModalities: ["TEXT"], abilities: [], tools: [] });
 
   const provider = React.useMemo(() => {
     return settings?.providers.find((p) => p.id === id) ?? null;
@@ -67,6 +73,12 @@ export default function SettingsProviderDetailPage() {
       setBaseUrl(provider.baseUrl ?? "");
       setEnabled(provider.enabled);
       setModels(provider.models);
+      setAdvanced({
+        chatCompletionsPath: provider.chatCompletionsPath ?? "/chat/completions", useResponseApi: provider.useResponseApi ?? false, includeHistoryReasoning: provider.includeHistoryReasoning ?? true,
+        vertexAI: provider.vertexAI ?? false, useServiceAccount: provider.useServiceAccount ?? false, privateKey: provider.privateKey ?? "", serviceAccountEmail: provider.serviceAccountEmail ?? "", location: provider.location ?? "us-central1", projectId: provider.projectId ?? "",
+        promptCaching: provider.promptCaching ?? false, promptCacheTtl: provider.promptCacheTtl ?? "5m",
+        balanceOption: provider.balanceOption ?? { enabled: false, apiPath: "/credits", resultPath: "data.total_usage" },
+      });
     }
   }, [provider]);
 
@@ -129,6 +141,7 @@ export default function SettingsProviderDetailPage() {
         baseUrl: baseUrl.trim() || provider.baseUrl,
         enabled,
         models,
+        ...advanced,
       };
       const updatedProviders = settings.providers.map((p) =>
         p.id === provider.id ? updatedProvider : p,
@@ -166,6 +179,35 @@ export default function SettingsProviderDetailPage() {
       toast.error("Failed to delete model");
       setModels(provider.models);
     }
+  };
+
+  const openModelEditor = (model?: ProviderModel) => {
+    setEditModelTarget(model ?? null);
+    setModelDraft(model ? structuredClone(model) : { id: crypto.randomUUID(), modelId: "", displayName: "", type: "CHAT", inputModalities: ["TEXT"], outputModalities: ["TEXT"], abilities: [], tools: [] });
+    setModelDialogOpen(true);
+  };
+
+  const saveModelDraft = () => {
+    if (!modelDraft.modelId.trim() || !modelDraft.displayName.trim()) {
+      toast.error(t("settings.provider_detail.model_required"));
+      return;
+    }
+    setModels((current) => editModelTarget ? current.map((model) => model.id === editModelTarget.id ? modelDraft : model) : [...current, modelDraft]);
+    setModelDialogOpen(false);
+  };
+
+  const toggleModelListValue = (field: "inputModalities" | "outputModalities" | "abilities", value: string) => {
+    setModelDraft((current) => {
+      const values = (current[field] ?? []) as string[];
+      return { ...current, [field]: values.includes(value) ? values.filter((item) => item !== value) : [...values, value] };
+    });
+  };
+
+  const toggleBuiltInTool = (type: string) => {
+    setModelDraft((current) => {
+      const tools = current.tools ?? [];
+      return { ...current, tools: tools.some((tool) => tool.type === type) ? tools.filter((tool) => tool.type !== type) : [...tools, { type }] };
+    });
   };
 
   return (
@@ -219,9 +261,31 @@ export default function SettingsProviderDetailPage() {
         </CardContent>
       </Card>
 
+      <Card className="mb-6">
+        <CardHeader><CardTitle className="text-base">{t("settings.provider_detail.advanced")}</CardTitle></CardHeader>
+        <CardContent className="grid gap-4">
+          {provider.type === "openai" && <>
+            <div className="grid gap-2"><label className="text-sm font-medium">{t("settings.provider_detail.chat_path")}</label><Input value={String(advanced.chatCompletionsPath ?? "")} onChange={(e) => setAdvanced((v) => ({ ...v, chatCompletionsPath: e.target.value }))} /></div>
+            <div className="flex items-center justify-between"><label className="text-sm font-medium">{t("settings.provider_detail.responses_api")}</label><Switch checked={Boolean(advanced.useResponseApi)} onCheckedChange={(value) => setAdvanced((v) => ({ ...v, useResponseApi: value }))} /></div>
+            <div className="flex items-center justify-between"><label className="text-sm font-medium">{t("settings.provider_detail.history_reasoning")}</label><Switch checked={Boolean(advanced.includeHistoryReasoning)} onCheckedChange={(value) => setAdvanced((v) => ({ ...v, includeHistoryReasoning: value }))} /></div>
+          </>}
+          {provider.type === "google" && <>
+            <div className="flex items-center justify-between"><label className="text-sm font-medium">{t("settings.provider_detail.vertex")}</label><Switch checked={Boolean(advanced.vertexAI)} onCheckedChange={(value) => setAdvanced((v) => ({ ...v, vertexAI: value }))} /></div>
+            <div className="flex items-center justify-between"><label className="text-sm font-medium">{t("settings.provider_detail.service_account")}</label><Switch checked={Boolean(advanced.useServiceAccount)} onCheckedChange={(value) => setAdvanced((v) => ({ ...v, useServiceAccount: value }))} /></div>
+            {Boolean(advanced.useServiceAccount) && <><div className="grid gap-2"><label className="text-sm font-medium">Project ID</label><Input value={String(advanced.projectId ?? "")} onChange={(e) => setAdvanced((v) => ({ ...v, projectId: e.target.value }))} /></div><div className="grid gap-2"><label className="text-sm font-medium">Location</label><Input value={String(advanced.location ?? "")} onChange={(e) => setAdvanced((v) => ({ ...v, location: e.target.value }))} /></div><div className="grid gap-2"><label className="text-sm font-medium">Service Account Email</label><Input value={String(advanced.serviceAccountEmail ?? "")} onChange={(e) => setAdvanced((v) => ({ ...v, serviceAccountEmail: e.target.value }))} /></div><div className="grid gap-2"><label className="text-sm font-medium">Private Key</label><textarea className="min-h-32 rounded-md border bg-background p-3 font-mono text-xs" value={String(advanced.privateKey ?? "")} onChange={(e) => setAdvanced((v) => ({ ...v, privateKey: e.target.value }))} /></div></>}
+          </>}
+          {provider.type === "claude" && <>
+            <div className="flex items-center justify-between"><label className="text-sm font-medium">{t("settings.provider_detail.prompt_cache")}</label><Switch checked={Boolean(advanced.promptCaching)} onCheckedChange={(value) => setAdvanced((v) => ({ ...v, promptCaching: value }))} /></div>
+            <div className="grid gap-2"><label className="text-sm font-medium">{t("settings.provider_detail.cache_ttl")}</label><select className="h-9 rounded-md border bg-background px-3" value={String(advanced.promptCacheTtl ?? "5m")} onChange={(e) => setAdvanced((v) => ({ ...v, promptCacheTtl: e.target.value }))}><option value="5m">{t("settings.provider_detail.five_minutes")}</option><option value="1h">{t("settings.provider_detail.one_hour")}</option></select></div>
+          </>}
+          <div className="flex items-center justify-between"><label className="text-sm font-medium">{t("settings.provider_detail.balance")}</label><Switch checked={Boolean((advanced.balanceOption as { enabled?: boolean } | undefined)?.enabled)} onCheckedChange={(value) => setAdvanced((v) => ({ ...v, balanceOption: { ...(v.balanceOption as object), enabled: value } }))} /></div>
+          {Boolean((advanced.balanceOption as { enabled?: boolean } | undefined)?.enabled) && <div className="grid gap-4 sm:grid-cols-2"><div className="grid gap-2"><label className="text-sm font-medium">Balance API Path</label><Input value={String((advanced.balanceOption as { apiPath?: string }).apiPath ?? "")} onChange={(e) => setAdvanced((v) => ({ ...v, balanceOption: { ...(v.balanceOption as object), apiPath: e.target.value } }))} /></div><div className="grid gap-2"><label className="text-sm font-medium">Result JSON Path</label><Input value={String((advanced.balanceOption as { resultPath?: string }).resultPath ?? "")} onChange={(e) => setAdvanced((v) => ({ ...v, balanceOption: { ...(v.balanceOption as object), resultPath: e.target.value } }))} /></div></div>}
+        </CardContent>
+      </Card>
+
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Models ({models.length})</CardTitle>
+          <div className="flex items-center justify-between"><CardTitle className="text-base">Models ({models.length})</CardTitle><Button size="sm" variant="outline" onClick={() => openModelEditor()}><Plus className="mr-1 size-4" />{t("settings.provider_detail.add_model")}</Button></div>
         </CardHeader>
         <CardContent>
           {models.length === 0 ? (
@@ -231,7 +295,8 @@ export default function SettingsProviderDetailPage() {
               {models.map((model) => (
                 <div
                   key={model.id}
-                  className="flex items-center justify-between rounded-lg border p-4"
+                  className="flex cursor-pointer items-center justify-between rounded-lg border p-4 hover:bg-accent"
+                  onClick={() => openModelEditor(model)}
                 >
                   <div className="flex flex-col gap-1.5">
                     <div className="flex items-center gap-2">
@@ -264,7 +329,7 @@ export default function SettingsProviderDetailPage() {
                     variant="ghost"
                     size="icon"
                     className="size-8 shrink-0 text-destructive"
-                    onClick={() => setDeleteModelTarget(model)}
+                    onClick={(event) => { event.stopPropagation(); setDeleteModelTarget(model); }}
                   >
                     <Trash2 className="size-4" />
                   </Button>
@@ -294,6 +359,20 @@ export default function SettingsProviderDetailPage() {
               Delete
             </Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={modelDialogOpen} onOpenChange={setModelDialogOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader><DialogTitle>{t(editModelTarget ? "settings.provider_detail.edit_model" : "settings.provider_detail.add_model")}</DialogTitle><DialogDescription>{t("settings.provider_detail.model_desc")}</DialogDescription></DialogHeader>
+          <div className="grid gap-4 py-2">
+            <div className="grid gap-2 sm:grid-cols-2"><div className="grid gap-2"><label className="text-sm font-medium">{t("settings.provider_detail.model_id")}</label><Input value={modelDraft.modelId} onChange={(e) => setModelDraft((v) => ({ ...v, modelId: e.target.value }))} /></div><div className="grid gap-2"><label className="text-sm font-medium">{t("settings.provider_detail.display_name")}</label><Input value={modelDraft.displayName} onChange={(e) => setModelDraft((v) => ({ ...v, displayName: e.target.value }))} /></div></div>
+            <div className="grid gap-2"><label className="text-sm font-medium">Model Type</label><select className="h-9 rounded-md border bg-background px-3" value={modelDraft.type} onChange={(e) => setModelDraft((v) => ({ ...v, type: e.target.value as ProviderModel["type"] }))}><option value="CHAT">Chat</option><option value="IMAGE">Image</option><option value="EMBEDDING">Embedding</option></select></div>
+            <div className="grid gap-4 sm:grid-cols-2"><div className="space-y-2"><label className="text-sm font-medium">Input Modalities</label>{["TEXT", "IMAGE"].map((value) => <label key={value} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={modelDraft.inputModalities?.includes(value as "TEXT" | "IMAGE")} onChange={() => toggleModelListValue("inputModalities", value)} />{value}</label>)}</div><div className="space-y-2"><label className="text-sm font-medium">Output Modalities</label>{["TEXT", "IMAGE"].map((value) => <label key={value} className="flex items-center gap-2 text-sm"><input type="checkbox" checked={modelDraft.outputModalities?.includes(value as "TEXT" | "IMAGE")} onChange={() => toggleModelListValue("outputModalities", value)} />{value}</label>)}</div></div>
+            <div className="space-y-2"><label className="text-sm font-medium">Abilities</label>{["TOOL", "REASONING"].map((value) => <label key={value} className="mr-6 inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={modelDraft.abilities?.includes(value as "TOOL" | "REASONING")} onChange={() => toggleModelListValue("abilities", value)} />{value}</label>)}</div>
+            <div className="space-y-2"><label className="text-sm font-medium">Built-in Tools</label>{["search", "url_context", "image_generation"].map((value) => <label key={value} className="mr-6 inline-flex items-center gap-2 text-sm"><input type="checkbox" checked={modelDraft.tools?.some((tool) => tool.type === value)} onChange={() => toggleBuiltInTool(value)} />{value}</label>)}</div>
+          </div>
+          <DialogFooter><Button variant="outline" onClick={() => setModelDialogOpen(false)}>Cancel</Button><Button onClick={saveModelDraft}>{t("settings.provider_detail.apply")}</Button></DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

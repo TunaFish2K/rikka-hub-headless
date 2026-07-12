@@ -79,6 +79,12 @@ const settingCategories = [
   },
 ];
 
+const settingGroups = [
+  { key: "general", categories: ["preferences", "assistants", "injections"] },
+  { key: "models_services", categories: ["models", "prompts", "providers", "search", "speech", "mcp", "web"] },
+  { key: "data", categories: ["headless"] },
+] as const;
+
 export default function SettingsPage() {
   const navigate = useNavigate();
   const { t } = useTranslation("page");
@@ -96,8 +102,11 @@ export default function SettingsPage() {
         </div>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {settingCategories.map((category) => {
+      <div className="space-y-8">
+        {settingGroups.map((group) => <section key={group.key} className="space-y-3">
+          <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{t(`settings.groups.${group.key}`)}</h2>
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {settingCategories.filter((category) => (group.categories as readonly string[]).includes(category.key)).map((category) => {
           const Icon = category.icon;
           return (
             <Card
@@ -117,6 +126,8 @@ export default function SettingsPage() {
             </Card>
           );
         })}
+          </div>
+        </section>)}
       </div>
     </div>
   );
