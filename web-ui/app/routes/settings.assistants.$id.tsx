@@ -34,6 +34,10 @@ export default function SettingsAssistantEditPage() {
   const [selectedMcpServers, setSelectedMcpServers] = React.useState<string[]>([]);
   const [selectedModeInjections, setSelectedModeInjections] = React.useState<string[]>([]);
   const [selectedLorebooks, setSelectedLorebooks] = React.useState<string[]>([]);
+  const [workspaceId, setWorkspaceId] = React.useState("");
+  const [enabledSkills, setEnabledSkills] = React.useState<string[]>([]);
+  const [workspaces, setWorkspaces] = React.useState<{ id: string; name: string; shellStatus: string }[]>([]);
+  const [skills, setSkills] = React.useState<{ name: string; description: string }[]>([]);
   const [saving, setSaving] = React.useState(false);
 
   React.useEffect(() => {
@@ -52,7 +56,19 @@ export default function SettingsAssistantEditPage() {
     setSelectedMcpServers(assistant.mcpServers ?? []);
     setSelectedModeInjections(assistant.modeInjectionIds ?? []);
     setSelectedLorebooks(assistant.lorebookIds ?? []);
+    setWorkspaceId(assistant.workspaceId ?? "");
+    setEnabledSkills(assistant.enabledSkills ?? []);
   }, [assistant]);
+
+  React.useEffect(() => {
+    void Promise.all([
+      api.get<{ id: string; name: string; shellStatus: string }[]>("workspaces"),
+      api.get<{ name: string; description: string }[]>("skills"),
+    ]).then(([workspaceList, skillList]) => {
+      setWorkspaces(workspaceList);
+      setSkills(skillList);
+    });
+  }, []);
 
   const chatModels: { label: string; value: string }[] = React.useMemo(() => {
     if (!settings) return [];
@@ -116,6 +132,8 @@ export default function SettingsAssistantEditPage() {
         mcpServers: selectedMcpServers,
         modeInjectionIds: selectedModeInjections,
         lorebookIds: selectedLorebooks,
+        workspaceId: workspaceId || null,
+        enabledSkills,
       };
       const updatedAssistants = settings.assistants.map((a) =>
         a.id === assistant.id ? updated : a,
@@ -298,6 +316,15 @@ export default function SettingsAssistantEditPage() {
               <label className="cursor-pointer text-sm font-medium">Allow Conversation System Prompt</label>
               <Switch checked={allowConversationSystemPrompt} onCheckedChange={setAllowConversationSystemPrompt} />
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="text-base">Headless Extensions</CardTitle></CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-2"><label className="text-sm font-medium">Workspace</label><Select value={workspaceId || "none"} onValueChange={(value) => setWorkspaceId(value === "none" ? "" : value)}><SelectTrigger><SelectValue placeholder="No workspace" /></SelectTrigger><SelectContent><SelectItem value="none">No workspace</SelectItem>{workspaces.map((workspace) => <SelectItem key={workspace.id} value={workspace.id} disabled={workspace.shellStatus !== "READY"}>{workspace.name} ({workspace.shellStatus})</SelectItem>)}</SelectContent></Select></div>
+            <Separator />
+            <div className="space-y-2"><label className="text-sm font-medium">Skills</label>{skills.length === 0 ? <p className="text-sm text-muted-foreground">No installed skills</p> : skills.map((skill) => <div key={skill.name} className="flex items-start justify-between gap-3"><div><div className="text-sm font-medium">{skill.name}</div><div className="text-xs text-muted-foreground">{skill.description}</div></div><input type="checkbox" className="mt-1 size-4 accent-primary" checked={enabledSkills.includes(skill.name)} onChange={() => setEnabledSkills((current) => current.includes(skill.name) ? current.filter((name) => name !== skill.name) : [...current, skill.name])}/></div>)}</div>
           </CardContent>
         </Card>
 

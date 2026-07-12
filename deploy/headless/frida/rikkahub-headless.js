@@ -31,7 +31,7 @@
 var PORT = 8080;
 var SERVICE_NAME = 'rikkahub';
 var LOCALHOST_ONLY = false;
-var PACKAGE = 'me.rerere.rikkahub.debug'; // release builds: change to me.rerere.rikkahub
+var PACKAGE = 'me.rerere.rikkahub.debug';
 
 console.log('[RikkaHub-Headless] script loaded, target port=' + PORT);
 

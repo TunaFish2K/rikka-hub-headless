@@ -7,7 +7,7 @@ import frida
 
 FRIDA_HOST = os.environ.get("FRIDA_HOST", "rikkahub-redroid:27042")
 PACKAGE = os.environ.get("PACKAGE", "me.rerere.rikkahub.debug")
-SCRIPT_PATH = os.environ.get("HOOK_SCRIPT", "/frida/rikkahub-headless.js")
+SCRIPT_PATH = os.environ.get("HOOK_SCRIPT", "/opt/frida/rikkahub-headless.js")
 
 session = None
 script = None

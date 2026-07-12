@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Brain } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -10,6 +11,8 @@ import { toast } from "sonner";
 import { useSettingsStore } from "~/stores/app-store";
 import api from "~/services/api";
 import type { Settings } from "~/types";
+
+const NONE_MODEL_VALUE = "__none__";
 
 function getAllModels(type?: string): { id: string; label: string; providerName: string }[] {
   const settings = useSettingsStore.getState().settings;
@@ -30,6 +33,7 @@ export default function SettingsModelsPage() {
   const settings = useSettingsStore((state) => state.settings);
   const setSettings = useSettingsStore((state) => state.setSettings);
   const [saving, setSaving] = React.useState(false);
+  const { t } = useTranslation("page");
 
   if (!settings) return null;
 
@@ -41,10 +45,10 @@ export default function SettingsModelsPage() {
     setSaving(true);
     try {
       await api.patch<Settings>("settings", { [field]: value });
-      toast.success("Model assignment updated");
+      toast.success(t("settings.models.updated"));
     } catch {
       setSettings(settings!);
-      toast.error("Failed to update model assignment");
+      toast.error(t("settings.models.update_failed"));
     } finally {
       setSaving(false);
     }
@@ -58,16 +62,16 @@ export default function SettingsModelsPage() {
         </Button>
         <Brain className="size-8" />
         <div>
-          <h1 className="text-2xl font-bold">Models</h1>
-          <p className="text-sm text-muted-foreground">Assign models for different tasks</p>
+          <h1 className="text-2xl font-bold">{t("settings.models.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("settings.models.description")}</p>
         </div>
       </div>
 
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Chat Model</CardTitle>
-            <CardDescription>Primary model used for conversation</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.chat.0")}</CardTitle>
+            <CardDescription>{t("settings.models.chat.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
@@ -76,7 +80,7 @@ export default function SettingsModelsPage() {
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
                 {chatModels.map((m) => (
@@ -89,8 +93,8 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Fast Model</CardTitle>
-            <CardDescription>Lightweight model for quick responses</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.fast.0")}</CardTitle>
+            <CardDescription>{t("settings.models.fast.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
@@ -99,7 +103,7 @@ export default function SettingsModelsPage() {
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
                 {chatModels.map((m) => (
@@ -112,20 +116,20 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Title Model</CardTitle>
-            <CardDescription>Model used for auto-generating conversation titles</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.title_model.0")}</CardTitle>
+            <CardDescription>{t("settings.models.title_model.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
-              value={settings.titleModelId ?? ""}
-              onValueChange={(v) => handleChange("titleModelId", v || null)}
+              value={settings.titleModelId ?? NONE_MODEL_VALUE}
+              onValueChange={(v) => handleChange("titleModelId", v === NONE_MODEL_VALUE ? null : v)}
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value={NONE_MODEL_VALUE}>{t("settings.models.none")}</SelectItem>
                 {chatModels.map((m) => (
                   <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
                 ))}
@@ -136,8 +140,8 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Translate Model</CardTitle>
-            <CardDescription>Model used for translation tasks</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.translate.0")}</CardTitle>
+            <CardDescription>{t("settings.models.translate.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
@@ -146,7 +150,7 @@ export default function SettingsModelsPage() {
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
                 {chatModels.map((m) => (
@@ -159,20 +163,20 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Suggestion Model</CardTitle>
-            <CardDescription>Model used for generating follow-up suggestions</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.suggestion.0")}</CardTitle>
+            <CardDescription>{t("settings.models.suggestion.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
-              value={settings.suggestionModelId ?? ""}
-              onValueChange={(v) => handleChange("suggestionModelId", v || null)}
+              value={settings.suggestionModelId ?? NONE_MODEL_VALUE}
+              onValueChange={(v) => handleChange("suggestionModelId", v === NONE_MODEL_VALUE ? null : v)}
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
+                <SelectItem value={NONE_MODEL_VALUE}>{t("settings.models.none")}</SelectItem>
                 {chatModels.map((m) => (
                   <SelectItem key={m.id} value={m.id}>{m.label}</SelectItem>
                 ))}
@@ -183,8 +187,8 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Image Generation Model</CardTitle>
-            <CardDescription>Model used for generating images</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.image.0")}</CardTitle>
+            <CardDescription>{t("settings.models.image.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
@@ -193,7 +197,7 @@ export default function SettingsModelsPage() {
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
                 {imageModels.map((m) => (
@@ -206,8 +210,8 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">OCR Model</CardTitle>
-            <CardDescription>Model used for optical character recognition</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.ocr.0")}</CardTitle>
+            <CardDescription>{t("settings.models.ocr.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
@@ -216,7 +220,7 @@ export default function SettingsModelsPage() {
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
                 {chatModels.map((m) => (
@@ -229,8 +233,8 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Compress Model</CardTitle>
-            <CardDescription>Model used for compressing conversation context</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.compress.0")}</CardTitle>
+            <CardDescription>{t("settings.models.compress.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <Select
@@ -239,7 +243,7 @@ export default function SettingsModelsPage() {
               disabled={saving}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select a model" />
+                <SelectValue placeholder={t("settings.models.select")} />
               </SelectTrigger>
               <SelectContent>
                 {chatModels.map((m) => (
@@ -252,8 +256,8 @@ export default function SettingsModelsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Web Search</CardTitle>
-            <CardDescription>Enable web search capabilities</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.web_search.0")}</CardTitle>
+            <CardDescription>{t("settings.models.web_search.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -262,15 +266,15 @@ export default function SettingsModelsPage() {
                 onCheckedChange={(v) => handleChange("enableWebSearch", v)}
                 disabled={saving}
               />
-              <Label>Enable Web Search</Label>
+              <Label>{t("settings.models.web_search.0")}</Label>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Suggestions</CardTitle>
-            <CardDescription>Enable follow-up question suggestions</CardDescription>
+            <CardTitle className="text-base">{t("settings.models.suggestions.0")}</CardTitle>
+            <CardDescription>{t("settings.models.suggestions.1")}</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -279,7 +283,7 @@ export default function SettingsModelsPage() {
                 onCheckedChange={(v) => handleChange("enableSuggestion", v)}
                 disabled={saving}
               />
-              <Label>Enable Suggestions</Label>
+              <Label>{t("settings.models.suggestions.0")}</Label>
             </div>
           </CardContent>
         </Card>

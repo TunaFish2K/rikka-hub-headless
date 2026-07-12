@@ -8,6 +8,8 @@ import {
 } from "react-router";
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import * as React from "react";
+import { useTranslation } from "react-i18next";
 import type { Route } from "./+types/root";
 import { useSettingsSubscription } from "~/stores";
 import "./app.css";
@@ -24,7 +26,7 @@ export const links: Route.LinksFunction = () => [
 
 export function Layout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en">
+    <html lang="zh-CN">
       <head>
         <meta charSet="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -41,7 +43,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
 }
 
 function AppContent() {
+  const { i18n } = useTranslation();
   useSettingsSubscription();
+  React.useEffect(() => {
+    document.documentElement.lang = i18n.resolvedLanguage ?? i18n.language;
+  }, [i18n.resolvedLanguage, i18n.language]);
   return (
     <ThemeProvider defaultTheme="system">
       <Outlet />

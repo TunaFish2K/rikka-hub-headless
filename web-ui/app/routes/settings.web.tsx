@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import { ArrowLeft, Globe } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -16,6 +17,7 @@ export default function SettingsWebPage() {
   const settings = useSettingsStore((state) => state.settings);
   const setSettings = useSettingsStore((state) => state.setSettings);
   const [saving, setSaving] = React.useState(false);
+  const { t } = useTranslation("page");
 
   if (!settings) return null;
 
@@ -40,9 +42,9 @@ export default function SettingsWebPage() {
       await api.patch<Settings>("settings", form);
       setSettings({ ...settings!, ...form } as Settings);
       setDirty(false);
-      toast.success("Web server settings saved");
+      toast.success(t("settings.web.saved"));
     } catch {
-      toast.error("Failed to save web server settings");
+      toast.error(t("settings.web.save_failed"));
     } finally {
       setSaving(false);
     }
@@ -56,15 +58,15 @@ export default function SettingsWebPage() {
         </Button>
         <Globe className="size-8" />
         <div>
-          <h1 className="text-2xl font-bold">Web Server</h1>
-          <p className="text-sm text-muted-foreground">Configure the Ktor web server</p>
+          <h1 className="text-2xl font-bold">{t("settings.web.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("settings.web.description")}</p>
         </div>
       </div>
 
       <div className="grid gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Enable Web Server</CardTitle>
+            <CardTitle className="text-base">{t("settings.web.enabled")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -73,14 +75,14 @@ export default function SettingsWebPage() {
                 onCheckedChange={(v) => handleField("webServerEnabled", v)}
                 disabled={saving}
               />
-              <Label>Enable Web Server</Label>
+              <Label>{t("settings.web.enabled")}</Label>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Port</CardTitle>
+            <CardTitle className="text-base">{t("settings.web.port")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Input
@@ -96,7 +98,7 @@ export default function SettingsWebPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Enable JWT Auth</CardTitle>
+            <CardTitle className="text-base">{t("settings.web.jwt")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -105,14 +107,14 @@ export default function SettingsWebPage() {
                 onCheckedChange={(v) => handleField("webServerJwtEnabled", v)}
                 disabled={saving}
               />
-              <Label>Enable JWT Auth</Label>
+              <Label>{t("settings.web.jwt")}</Label>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Access Password</CardTitle>
+            <CardTitle className="text-base">{t("settings.web.password")}</CardTitle>
           </CardHeader>
           <CardContent>
             <Input
@@ -120,14 +122,14 @@ export default function SettingsWebPage() {
               value={form.webServerAccessPassword}
               onChange={(e) => handleField("webServerAccessPassword", e.target.value)}
               disabled={saving}
-              placeholder="Enter access password"
+              placeholder={t("settings.web.password_placeholder")}
             />
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">Localhost Only</CardTitle>
+            <CardTitle className="text-base">{t("settings.web.localhost")}</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
@@ -136,7 +138,7 @@ export default function SettingsWebPage() {
                 onCheckedChange={(v) => handleField("webServerLocalhostOnly", v)}
                 disabled={saving}
               />
-              <Label>Localhost Only</Label>
+              <Label>{t("settings.web.localhost")}</Label>
             </div>
           </CardContent>
         </Card>
@@ -144,7 +146,7 @@ export default function SettingsWebPage() {
 
       <div className="mt-6 flex justify-end">
         <Button onClick={handleSave} disabled={!dirty || saving}>
-          {saving ? "Saving..." : "Save"}
+          {saving ? t("settings.saving") : t("settings.save")}
         </Button>
       </div>
     </div>

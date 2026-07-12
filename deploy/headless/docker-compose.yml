@@ -11,26 +11,41 @@ services:
         max-file: "3"
     volumes:
       - rikkahub-data:/data
+    ports:
+      - "${RIKKAHUB_PORT:-8080}:8080"
     command: >
       androidboot.use_adb_over_tcp=1
       androidboot.hardware.redroid_gpu=guest
       redroid_use_vsock=0
       androidboot.redroid_arch=x86_64
+    healthcheck:
+      test: ["CMD-SHELL", "getprop sys.boot_completed | grep -q 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
 
   manager:
-    build: ./manager
+    build:
+      context: ../..
+      dockerfile: deploy/headless/manager/Dockerfile
     container_name: rikkahub-manager
     restart: unless-stopped
     depends_on:
-      - redroid
+      redroid:
+        condition: service_healthy
     volumes:
-      - ./apk:/apk
-      - ./frida:/frida
       - ./logs:/logs
     environment:
       - REDROID_HOST=redroid
       - PORT=8080
       - PACKAGE=me.rerere.rikkahub.debug
+      - APK_PATH=/opt/rikkahub.apk
+      - HOOK_SCRIPT=/opt/frida/rikkahub-headless.js
+    healthcheck:
+      test: ["CMD", "curl", "-fsS", "http://redroid:8080/"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
 
 volumes:
   rikkahub-data:

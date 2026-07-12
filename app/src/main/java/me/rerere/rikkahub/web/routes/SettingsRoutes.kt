@@ -43,10 +43,10 @@ fun Route.settingsRoutes(
             val raw = call.receive<String>()
             val patch = JsonInstant.parseToJsonElement(raw).jsonObject
             val current = settingsStore.settingsFlow.value
-            val currentJson = JsonInstant.encodeToJsonElement(current).jsonObject
+            val currentJson = JsonInstant.encodeToJsonElement(Settings.serializer(), current).jsonObject
             val merged = deepMergeSettings(currentJson, patch)
             val updated = try {
-                JsonInstant.decodeFromJsonElement<Settings>(merged)
+                JsonInstant.decodeFromJsonElement(Settings.serializer(), merged)
             } catch (e: Exception) {
                 throw BadRequestException("Invalid settings patch: ${e.message}")
             }

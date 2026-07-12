@@ -1,6 +1,8 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router";
 import {
+  ArrowLeft,
   Bot,
   Brain,
   FileText,
@@ -13,68 +15,65 @@ import {
   Server,
   Settings2,
   SlidersHorizontal,
+  HardDrive,
 } from "lucide-react";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "~/components/ui/card";
+import { Button } from "~/components/ui/button";
 
 const settingCategories = [
   {
-    title: "Providers",
-    description: "Configure AI API providers (OpenAI, Google, Claude, etc.)",
+    key: "providers",
     icon: Puzzle,
     href: "/settings/providers",
   },
   {
-    title: "Models",
-    description: "Assign models for chat, fast, title, translation, and more",
+    key: "models",
     icon: Brain,
     href: "/settings/models",
   },
   {
-    title: "Custom Prompts",
-    description: "Edit system prompt templates for titles, translation, suggestions, OCR, compress",
+    key: "prompts",
     icon: ScrollText,
     href: "/settings/prompts",
   },
   {
-    title: "Assistants",
-    description: "Manage assistant profiles, system prompts, and parameters",
+    key: "assistants",
     icon: Bot,
     href: "/settings/assistants",
   },
   {
-    title: "MCP Servers",
-    description: "Configure MCP (Model Context Protocol) server connections",
+    key: "mcp",
     icon: Server,
     href: "/settings/mcp",
   },
   {
-    title: "Search Services",
-    description: "Configure web search providers and common search options",
+    key: "search",
     icon: Globe,
     href: "/settings/search",
   },
   {
-    title: "Speech",
-    description: "Configure TTS (text-to-speech) and ASR (speech recognition) providers",
+    key: "speech",
     icon: Mic,
     href: "/settings/speech",
   },
   {
-    title: "Web Server",
-    description: "Configure the Ktor web server port, JWT auth, and access control",
+    key: "web",
     icon: Globe,
     href: "/settings/web",
   },
   {
-    title: "Injections",
-    description: "Manage mode injections, lorebooks, and quick messages",
+    key: "injections",
     icon: MessageSquareQuote,
     href: "/settings/injections",
   },
   {
-    title: "Preferences",
-    description: "General app preferences and UI display settings",
+    key: "headless",
+    icon: HardDrive,
+    href: "/settings/headless",
+  },
+  {
+    key: "preferences",
     icon: SlidersHorizontal,
     href: "/settings/preferences",
   },
@@ -82,14 +81,18 @@ const settingCategories = [
 
 export default function SettingsPage() {
   const navigate = useNavigate();
+  const { t } = useTranslation("page");
 
   return (
     <div className="mx-auto max-w-5xl p-6">
       <div className="mb-8 flex items-center gap-3">
+        <Button variant="ghost" size="icon" onClick={() => navigate("/")} aria-label={t("settings.back_home")} title={t("settings.back_home")}>
+          <ArrowLeft className="size-5" />
+        </Button>
         <Settings2 className="size-8" />
         <div>
-          <h1 className="text-2xl font-bold">Settings</h1>
-          <p className="text-sm text-muted-foreground">Configure your RikkaHub experience</p>
+          <h1 className="text-2xl font-bold">{t("settings.title")}</h1>
+          <p className="text-sm text-muted-foreground">{t("settings.description")}</p>
         </div>
       </div>
 
@@ -105,11 +108,11 @@ export default function SettingsPage() {
               <CardHeader className="pb-2">
                 <div className="flex items-center gap-2">
                   <Icon className="size-5 text-muted-foreground" />
-                  <CardTitle className="text-base">{category.title}</CardTitle>
+                  <CardTitle className="text-base">{t(`settings.categories.${category.key}.0`)}</CardTitle>
                 </div>
               </CardHeader>
               <CardContent>
-                <CardDescription className="text-xs">{category.description}</CardDescription>
+                <CardDescription className="text-xs">{t(`settings.categories.${category.key}.1`)}</CardDescription>
               </CardContent>
             </Card>
           );

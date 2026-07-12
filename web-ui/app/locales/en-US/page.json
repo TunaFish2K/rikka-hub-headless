@@ -34,5 +34,16 @@
     "header": {
       "select_conversation": "Select a conversation"
     }
+  },
+  "settings": {
+    "title": "Settings", "description": "Configure RikkaHub", "back": "Back to settings", "back_home": "Back to home", "save": "Save", "saving": "Saving...",
+    "categories": {
+      "providers": ["Providers", "Configure AI API providers (OpenAI, Google, Claude, etc.)"], "models": ["Models", "Assign models for chat, fast, title, translation, and more"], "prompts": ["Custom Prompts", "Edit prompts for titles, translation, suggestions, OCR, and compression"], "assistants": ["Assistants", "Manage assistant profiles, system prompts, and parameters"], "mcp": ["MCP Servers", "Configure Model Context Protocol server connections"], "search": ["Search Services", "Configure web search providers and common options"], "speech": ["Speech", "Configure text-to-speech and speech recognition providers"], "web": ["Web Server", "Configure the Ktor web server port, JWT, and access control"], "injections": ["Injections", "Manage mode injections, lorebooks, and quick messages"], "headless": ["Headless & Storage", "Manage Docker workspaces and remote backup settings"], "preferences": ["Preferences", "General app preferences and UI display settings"]
+    },
+    "models": {
+      "title": "Models", "description": "Assign models for different tasks", "none": "None", "select": "Select a model", "updated": "Model assignment updated", "update_failed": "Failed to update model assignment", "chat": ["Chat Model", "Primary model used for conversation"], "fast": ["Fast Model", "Lightweight model for quick responses"], "title_model": ["Title Model", "Model used for auto-generating conversation titles"], "translate": ["Translate Model", "Model used for translation tasks"], "suggestion": ["Suggestion Model", "Model used for generating follow-up suggestions"], "image": ["Image Generation Model", "Model used for generating images"], "ocr": ["OCR Model", "Model used for optical character recognition"], "compress": ["Compress Model", "Model used for compressing conversation context"], "web_search": ["Web Search", "Enable web search capabilities"], "suggestions": ["Suggestions", "Enable follow-up question suggestions"]
+    },
+    "web": { "title": "Web Server", "description": "Configure the Ktor web server", "enabled": "Enable Web Server", "port": "Port", "jwt": "Enable JWT Auth", "password": "Access Password", "password_placeholder": "Enter access password", "localhost": "Localhost Only", "saved": "Web server settings saved", "save_failed": "Failed to save web server settings" },
+    "headless": { "title": "Headless & Storage", "description": "Server workspaces and remote backup configuration", "workspaces": "Workspaces", "workspace_name": "Workspace name", "create": "Create", "install": "Install Ubuntu", "install_started": "Rootfs installation started", "install_failed": "Rootfs installation failed", "webdav": "WebDAV Backup", "s3": "S3 Backup", "save_backup": "Save backup settings", "backup_saved": "Backup settings saved", "backup_failed": "Failed to save backup settings" }
   }
 }

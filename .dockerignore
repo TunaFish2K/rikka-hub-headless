@@ -1,0 +1,16 @@
+.git
+.gradle
+.idea
+**/build
+**/node_modules
+web-ui/.react-router
+deploy/headless/logs
+deploy/headless/apk/*
+!deploy/headless/apk/rikkahub.apk
+!deploy/headless/apk/rikkahub-version
+!deploy/headless/apk/rikkahub.apk.sha256
+deploy/headless/frida/frida-server*
+local.properties
+app/google-services.json
+*.jks
+*.keystore

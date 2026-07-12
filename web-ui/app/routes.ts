@@ -16,4 +16,5 @@ export default [
   route("settings/web", "routes/settings.web.tsx"),
   route("settings/injections", "routes/settings.injections.tsx"),
   route("settings/preferences", "routes/settings.preferences.tsx"),
+  route("settings/headless", "routes/settings.headless.tsx"),
 ] satisfies RouteConfig;

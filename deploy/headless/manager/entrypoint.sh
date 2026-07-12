@@ -12,7 +12,8 @@ set -uo pipefail
 REDROID_HOST="${REDROID_HOST:-rikkahub-redroid}"
 PORT="${PORT:-8080}"
 PACKAGE="${PACKAGE:-me.rerere.rikkahub.debug}"
-APK_PATH="${APK_PATH:-/apk/app-debug.apk}"
+APK_PATH="${APK_PATH:-/opt/rikkahub.apk}"
+HOOK_SCRIPT="${HOOK_SCRIPT:-/opt/frida/rikkahub-headless.js}"
 MAX_FAILS="${MAX_FAILS:-3}"
 
 ADB_TARGET="${REDROID_HOST}:5555"
@@ -27,6 +28,7 @@ cleanup() {
   pkill -f "run.py" 2>/dev/null || true
   adb -s "$ADB_TARGET" shell am force-stop "$PACKAGE" >/dev/null 2>&1 || true
 }
+trap 'cleanup; exit 0' TERM INT
 
 wait_for_adb() {
   log "waiting for ADB at $ADB_TARGET ..."
@@ -67,12 +69,19 @@ setup_frida_server() {
 }
 
 install_apk() {
-  if [ -z "$(adb -s "$ADB_TARGET" shell pm path "$PACKAGE" 2>/dev/null)" ]; then
-    log "installing APK: $APK_PATH"
-    adb -s "$ADB_TARGET" install -r "$APK_PATH"
-  else
-    log "APK already installed"
+  local expected_version installed_version expected_hash installed_hash hash_file
+  expected_version="$(cat /opt/rikkahub-version)"
+  installed_version="$(adb -s "$ADB_TARGET" shell dumpsys package "$PACKAGE" 2>/dev/null | sed -n 's/.*versionName=//p' | head -1 | tr -d '\r')"
+  expected_hash="$(sha256sum "$APK_PATH" | cut -d' ' -f1)"
+  hash_file="/data/local/tmp/rikkahub-${PACKAGE}.sha256"
+  installed_hash="$(adb -s "$ADB_TARGET" shell cat "$hash_file" 2>/dev/null | tr -d '\r')"
+  if [ "$installed_version" = "$expected_version" ] && [ "$installed_hash" = "$expected_hash" ]; then
+    log "APK $expected_version ($expected_hash) already installed"
+    return 0
   fi
+  log "installing APK $expected_version (installed: ${installed_version:-none}, hash changed)"
+  adb -s "$ADB_TARGET" install -r "$APK_PATH"
+  adb -s "$ADB_TARGET" shell "printf '%s' '$expected_hash' > '$hash_file'"
 }
 
 run_bootstrap() {
@@ -86,8 +95,8 @@ run_bootstrap() {
   adb -s "$ADB_TARGET" shell am start -n "$ACTIVITY" >/dev/null 2>&1
 
   log "starting Frida hook runner ..."
-  FRIDA_HOST="$FRIDA_TARGET" PACKAGE="$PACKAGE" HOOK_SCRIPT="/frida/rikkahub-headless.js" \
-    nohup python3 /frida/run.py > /logs/runner.log 2>&1 &
+  FRIDA_HOST="$FRIDA_TARGET" PACKAGE="$PACKAGE" HOOK_SCRIPT="$HOOK_SCRIPT" \
+    nohup python3 /opt/frida/run.py > /logs/runner.log 2>&1 &
   RUNNER_PID=$!
   echo "$RUNNER_PID" > /logs/runner.pid
   log "runner PID $RUNNER_PID"

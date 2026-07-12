@@ -66,6 +66,17 @@ android {
                     keyPassword = keyPasswordValue
                 }
             }
+
+            val envStoreFile = System.getenv("RIKKAHUB_KEYSTORE_FILE")
+            val envStorePassword = System.getenv("RIKKAHUB_KEYSTORE_PASSWORD")
+            val envKeyAlias = System.getenv("RIKKAHUB_KEY_ALIAS")
+            val envKeyPassword = System.getenv("RIKKAHUB_KEY_PASSWORD")
+            if (envStoreFile != null && envStorePassword != null && envKeyAlias != null && envKeyPassword != null) {
+                storeFile = file(envStoreFile)
+                storePassword = envStorePassword
+                keyAlias = envKeyAlias
+                keyPassword = envKeyPassword
+            }
         }
     }
 
@@ -83,6 +94,9 @@ android {
         }
         debug {
             applicationIdSuffix = ".debug"
+            if (signingConfigs.getByName("release").storeFile != null) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             buildConfigField("String", "VERSION_NAME", "\"${android.defaultConfig.versionName}\"")
             buildConfigField("String", "VERSION_CODE", "\"${android.defaultConfig.versionCode}\"")
         }
