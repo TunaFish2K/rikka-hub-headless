@@ -5,20 +5,40 @@
 export interface DisplaySetting {
   userNickname: string;
   userAvatar?: AssistantAvatar;
+  useAppIconStyleLoadingIndicator: boolean;
   showUserAvatar: boolean;
-  showModelIcon?: boolean;
+  showAssistantBubble: boolean;
+  bubbleOpacity: number;
+  showModelIcon: boolean;
   showModelName: boolean;
+  showDateTimeInMessage: boolean;
   showTokenUsage: boolean;
   showThinkingContent: boolean;
   autoCloseThinking: boolean;
+  showUpdates: boolean;
+  showMessageJumper: boolean;
+  messageJumperOnLeft: boolean;
+  fontSizeRatio: number;
+  enableMessageGenerationHapticEffect: boolean;
+  skipCropImage: boolean;
+  enableNotificationOnMessageGeneration: boolean;
+  enableLiveUpdateNotification: boolean;
   codeBlockAutoWrap: boolean;
   codeBlockAutoCollapse: boolean;
   showLineNumbers: boolean;
-  sendOnEnter: boolean;
-  enableAutoScroll: boolean;
-  fontSizeRatio: number;
+  ttsOnlyReadQuoted: boolean;
+  autoPlayTTSAfterGeneration: boolean;
   pasteLongTextAsFile: boolean;
   pasteLongTextThreshold: number;
+  sendOnEnter: boolean;
+  enableAutoScroll: boolean;
+  enableLatexRendering: boolean;
+  enableBlurEffect: boolean;
+  chatFontFamily: string;
+  chatCustomFontPath: string;
+  chatCustomFontName: string;
+  enableVolumeKeyScroll: boolean;
+  volumeKeyScrollRatio: number;
   [key: string]: unknown;
 }
 
@@ -67,13 +87,31 @@ export interface AssistantProfile {
   mcpServers?: string[];
   modeInjectionIds?: string[];
   lorebookIds?: string[];
+  quickMessageIds?: string[];
   allowConversationPromptInjection?: boolean;
   allowConversationSystemPrompt?: boolean;
   name: string;
   avatar?: AssistantAvatar;
   useAssistantAvatar?: boolean;
   tags: string[];
-  quickMessageIds?: string[];
+  temperature?: number;
+  topP?: number;
+  contextMessageSize?: number;
+  streamOutput?: boolean;
+  enableMemory?: boolean;
+  systemPrompt?: string;
+  messageTemplate?: string;
+  presetMessages?: string[];
+  maxTokens?: number;
+  enableTimeReminder?: boolean;
+  enabledSkills?: string[];
+  workspaceId?: string | null;
+  customHeaders?: Record<string, string>;
+  customBodies?: Record<string, string>;
+  localTools?: string[];
+  background?: string;
+  backgroundOpacity?: number;
+  useGradientBackground?: boolean;
   [key: string]: unknown;
 }
 
@@ -122,16 +160,81 @@ export interface ProviderModel {
 
 export interface ProviderProfile {
   id: string;
+  type: string;
   enabled: boolean;
   name: string;
   models: ProviderModel[];
+  apiKey?: string;
+  baseUrl?: string;
   [key: string]: unknown;
 }
 
 export interface SearchServiceOption {
   id: string;
   type?: string;
+  apiKey?: string;
+  baseUrl?: string;
   [key: string]: unknown;
+}
+
+export interface SearchCommonOptions {
+  resultSize: number;
+}
+
+export interface TTSProviderProfile {
+  id: string;
+  type: string;
+  name: string;
+  apiKey?: string;
+  baseUrl?: string;
+  model?: string;
+  voice?: string;
+  voiceId?: string;
+  [key: string]: unknown;
+}
+
+export interface ASRProviderProfile {
+  id: string;
+  type: string;
+  name: string;
+  apiKey?: string;
+  websocketUrl?: string;
+  model?: string;
+  language?: string;
+  sampleRate?: number;
+  [key: string]: unknown;
+}
+
+export interface WebDavConfig {
+  url: string;
+  username: string;
+  password: string;
+  path: string;
+  items: string[];
+}
+
+export interface S3Config {
+  endpoint: string;
+  accessKeyId: string;
+  secretAccessKey: string;
+  bucket: string;
+  region: string;
+  pathStyle: boolean;
+  items: string[];
+}
+
+export interface BackupReminderConfig {
+  enabled: boolean;
+  intervalDays: number;
+  lastBackupTime: number;
+}
+
+export interface CustomTheme {
+  id: string;
+  name: string;
+  primaryColorArgb: number;
+  secondaryColorArgb?: number | null;
+  tertiaryColorArgb?: number | null;
 }
 
 /**
@@ -141,11 +244,26 @@ export interface SearchServiceOption {
 export interface Settings {
   dynamicColor: boolean;
   themeId: string;
+  customThemes: CustomTheme[];
   developerMode: boolean;
   displaySetting: DisplaySetting;
   enableWebSearch: boolean;
   favoriteModels: string[];
   chatModelId: string;
+  fastModelId: string;
+  titleModelId: string | null;
+  imageGenerationModelId: string;
+  translateModeId: string;
+  translateThinkingBudget: number;
+  enableSuggestion: boolean;
+  suggestionModelId: string | null;
+  titlePrompt: string;
+  translatePrompt: string;
+  suggestionPrompt: string;
+  ocrModelId: string;
+  ocrPrompt: string;
+  compressModelId: string;
+  compressPrompt: string;
   assistantId: string;
   providers: ProviderProfile[];
   assistants: AssistantProfile[];
@@ -154,7 +272,21 @@ export interface Settings {
   lorebooks?: LorebookProfile[];
   mcpServers: McpServerConfig[];
   searchServices: SearchServiceOption[];
-  quickMessages?: QuickMessage[];
+  searchCommonOptions: SearchCommonOptions;
   searchServiceSelected: number;
+  quickMessages?: QuickMessage[];
+  ttsProviders: TTSProviderProfile[];
+  selectedTTSProviderId: string;
+  asrProviders: ASRProviderProfile[];
+  selectedASRProviderId: string | null;
+  webServerEnabled: boolean;
+  webServerPort: number;
+  webServerJwtEnabled: boolean;
+  webServerAccessPassword: string;
+  webServerLocalhostOnly: boolean;
+  webDavConfig: WebDavConfig;
+  s3Config: S3Config;
+  backupReminderConfig: BackupReminderConfig;
+  launchCount: number;
   [key: string]: unknown;
 }

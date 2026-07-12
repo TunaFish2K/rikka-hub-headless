@@ -21,6 +21,7 @@ import {
   Plus,
   RefreshCw,
   LogOut,
+  Settings2,
   Sun,
   Trash2,
 } from "lucide-react";
@@ -1141,6 +1142,15 @@ export const ConversationSidebar = React.memo(
                 <LogOut className="size-4" />
               </Button>
             )}
+
+            <a
+              href="/settings"
+              className="inline-flex items-center justify-center rounded-md p-2 text-foreground hover:bg-accent"
+              aria-label="Settings"
+              title="Settings"
+            >
+              <Settings2 className="size-4" />
+            </a>
 
             <LanguageSwitcher />
 

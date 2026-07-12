@@ -1,0 +1,36 @@
+services:
+  redroid:
+    image: redroid/redroid:13.0.0-latest
+    container_name: rikkahub-redroid
+    privileged: true
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    volumes:
+      - rikkahub-data:/data
+    command: >
+      androidboot.use_adb_over_tcp=1
+      androidboot.hardware.redroid_gpu=guest
+      redroid_use_vsock=0
+      androidboot.redroid_arch=x86_64
+
+  manager:
+    build: ./manager
+    container_name: rikkahub-manager
+    restart: unless-stopped
+    depends_on:
+      - redroid
+    volumes:
+      - ./apk:/apk
+      - ./frida:/frida
+      - ./logs:/logs
+    environment:
+      - REDROID_HOST=redroid
+      - PORT=8080
+      - PACKAGE=me.rerere.rikkahub.debug
+
+volumes:
+  rikkahub-data:

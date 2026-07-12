@@ -3,13 +3,20 @@ package me.rerere.rikkahub.web.routes
 import io.ktor.http.HttpStatusCode
 import io.ktor.server.request.receive
 import io.ktor.server.response.respond
-import io.ktor.server.routing.post
 import io.ktor.server.routing.Route
+import io.ktor.server.routing.get
+import io.ktor.server.routing.patch
+import io.ktor.server.routing.post
 import io.ktor.server.routing.route
+import kotlinx.serialization.json.JsonNull
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
 import me.rerere.ai.provider.BuiltInTools
 import me.rerere.ai.provider.ModelType
+import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.datastore.findModelById
+import me.rerere.rikkahub.utils.JsonInstant
 import me.rerere.rikkahub.web.BadRequestException
 import me.rerere.rikkahub.web.NotFoundException
 import me.rerere.rikkahub.web.dto.UpdateAssistantModelRequest
@@ -27,6 +34,26 @@ fun Route.settingsRoutes(
     settingsStore: SettingsStore
 ) {
     route("/settings") {
+        get {
+            val settings = settingsStore.settingsFlow.value
+            call.respond(HttpStatusCode.OK, settings)
+        }
+
+        patch {
+            val raw = call.receive<String>()
+            val patch = JsonInstant.parseToJsonElement(raw).jsonObject
+            val current = settingsStore.settingsFlow.value
+            val currentJson = JsonInstant.encodeToJsonElement(current).jsonObject
+            val merged = deepMergeSettings(currentJson, patch)
+            val updated = try {
+                JsonInstant.decodeFromJsonElement<Settings>(merged)
+            } catch (e: Exception) {
+                throw BadRequestException("Invalid settings patch: ${e.message}")
+            }
+            settingsStore.update(updated)
+            call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
+        }
+
         post("/assistant") {
             val request = call.receive<UpdateAssistantRequest>()
             val assistantId = request.assistantId.toUuid("assistantId")
@@ -189,6 +216,25 @@ fun Route.settingsRoutes(
             call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
         }
     }
+}
+
+private fun deepMergeSettings(base: JsonObject, patch: JsonObject): JsonObject {
+    val result = base.toMutableMap()
+    for ((key, patchValue) in patch) {
+        when {
+            patchValue is JsonNull -> result.remove(key)
+            patchValue is JsonObject -> {
+                val baseValue = result[key]
+                if (baseValue is JsonObject) {
+                    result[key] = deepMergeSettings(baseValue, patchValue)
+                } else {
+                    result[key] = patchValue
+                }
+            }
+            else -> result[key] = patchValue
+        }
+    }
+    return JsonObject(result)
 }
 
 private fun parseBuiltInTool(tool: String): BuiltInTools {
