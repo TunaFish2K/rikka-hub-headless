@@ -3,6 +3,12 @@ set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 OUT="$ROOT/deploy/headless/apk"
+export ANDROID_HOME="${ANDROID_HOME:-$HOME/.local/share/android-sdk}"
+export ANDROID_SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+if [[ -z "${JAVA_HOME:-}" && -d /usr/lib/jvm/java-21-openjdk ]]; then
+  export JAVA_HOME=/usr/lib/jvm/java-21-openjdk
+fi
+export PATH="$JAVA_HOME/bin:$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH"
 KEYSTORE_DIR="${RIKKAHUB_KEYSTORE_DIR:-$HOME/.local/share/rikkahub-headless}"
 KEYSTORE_FILE="${RIKKAHUB_KEYSTORE_FILE:-$KEYSTORE_DIR/headless-debug.jks}"
 KEYSTORE_PASSWORD="${RIKKAHUB_KEYSTORE_PASSWORD:-changeit}"
