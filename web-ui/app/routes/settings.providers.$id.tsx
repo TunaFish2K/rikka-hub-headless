@@ -1,7 +1,7 @@
 import * as React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
-import { ArrowLeft, Plus, Puzzle, Save, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Puzzle, RefreshCw, Save, Trash2 } from "lucide-react";
 import { Button } from "~/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Switch } from "~/components/ui/switch";
@@ -60,6 +60,7 @@ export default function SettingsProviderDetailPage() {
   const [deleteModelTarget, setDeleteModelTarget] = React.useState<ProviderModel | null>(null);
   const [editModelTarget, setEditModelTarget] = React.useState<ProviderModel | null>(null);
   const [modelDialogOpen, setModelDialogOpen] = React.useState(false);
+  const [discovering, setDiscovering] = React.useState(false);
   const [modelDraft, setModelDraft] = React.useState<ProviderModel>({ id: "", modelId: "", displayName: "", type: "CHAT", inputModalities: ["TEXT"], outputModalities: ["TEXT"], abilities: [], tools: [] });
 
   const provider = React.useMemo(() => {
@@ -210,6 +211,22 @@ export default function SettingsProviderDetailPage() {
     });
   };
 
+  const discoverModels = async () => {
+    setDiscovering(true);
+    try {
+      const discovered = await api.get<ProviderModel[]>(`settings/provider/${provider.id}/models`);
+      setModels((current) => {
+        const existingIds = new Set(current.map((model) => model.modelId));
+        return [...current, ...discovered.filter((model) => !existingIds.has(model.modelId))];
+      });
+      toast.success(t("settings.provider_detail.discovered", { count: discovered.length }));
+    } catch {
+      toast.error(t("settings.provider_detail.discover_failed"));
+    } finally {
+      setDiscovering(false);
+    }
+  };
+
   return (
     <div className="mx-auto max-w-3xl p-6">
       <div className="mb-6 flex items-center justify-between">
@@ -285,7 +302,7 @@ export default function SettingsProviderDetailPage() {
 
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between"><CardTitle className="text-base">Models ({models.length})</CardTitle><Button size="sm" variant="outline" onClick={() => openModelEditor()}><Plus className="mr-1 size-4" />{t("settings.provider_detail.add_model")}</Button></div>
+          <div className="flex items-center justify-between gap-2"><CardTitle className="text-base">Models ({models.length})</CardTitle><div className="flex gap-2"><Button size="sm" variant="outline" onClick={discoverModels} disabled={discovering}><RefreshCw className={`mr-1 size-4 ${discovering ? "animate-spin" : ""}`} />{t("settings.provider_detail.discover")}</Button><Button size="sm" variant="outline" onClick={() => openModelEditor()}><Plus className="mr-1 size-4" />{t("settings.provider_detail.add_model")}</Button></div></div>
         </CardHeader>
         <CardContent>
           {models.length === 0 ? (

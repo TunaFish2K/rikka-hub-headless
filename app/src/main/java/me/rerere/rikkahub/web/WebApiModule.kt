@@ -21,6 +21,7 @@ import io.ktor.server.routing.post
 import io.ktor.server.routing.route
 import io.ktor.server.routing.routing
 import me.rerere.rikkahub.data.datastore.SettingsStore
+import me.rerere.ai.provider.ProviderManager
 import me.rerere.rikkahub.data.files.FilesManager
 import me.rerere.rikkahub.data.files.SkillManager
 import me.rerere.rikkahub.data.repository.ConversationRepository
@@ -70,6 +71,7 @@ fun Application.configureWebApi(
     filesManager: FilesManager,
     workspaceRepository: WorkspaceRepository,
     skillManager: SkillManager,
+    providerManager: ProviderManager,
 ) {
     val jwtEnabled = settingsStore.settingsFlow.value.webServerJwtEnabled
 
@@ -177,7 +179,7 @@ fun Application.configureWebApi(
                     conversationRoutes(chatService, conversationRepo, folderRepo, settingsStore)
                     folderRoutes(chatService, folderRepo, settingsStore)
                     eventsRoutes(chatService, conversationRepo, folderRepo, settingsStore)
-                    settingsRoutes(settingsStore)
+                    settingsRoutes(settingsStore, providerManager)
                     filesRoutes(filesManager, context)
                     assetsRoutes(context)
                     headlessRoutes(workspaceRepository, skillManager)
@@ -186,7 +188,7 @@ fun Application.configureWebApi(
                 conversationRoutes(chatService, conversationRepo, folderRepo, settingsStore)
                 folderRoutes(chatService, folderRepo, settingsStore)
                 eventsRoutes(chatService, conversationRepo, folderRepo, settingsStore)
-                settingsRoutes(settingsStore)
+                settingsRoutes(settingsStore, providerManager)
                 filesRoutes(filesManager, context)
                 assetsRoutes(context)
                 headlessRoutes(workspaceRepository, skillManager)

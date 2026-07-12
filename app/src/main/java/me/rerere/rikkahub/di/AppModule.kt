@@ -95,7 +95,8 @@ val appModule = module {
             settingsStore = get(),
             filesManager = get(),
             workspaceRepository = get(),
-            skillManager = get()
+            skillManager = get(),
+            providerManager = get()
         )
     }
 }

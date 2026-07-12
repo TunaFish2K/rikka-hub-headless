@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import me.rerere.ai.provider.ProviderManager
 import me.rerere.rikkahub.AppScope
 import me.rerere.rikkahub.data.datastore.SettingsStore
 import me.rerere.rikkahub.data.files.FilesManager
@@ -47,6 +48,7 @@ class WebServerManager(
     private val filesManager: FilesManager,
     private val workspaceRepository: WorkspaceRepository,
     private val skillManager: SkillManager,
+    private val providerManager: ProviderManager,
 ) {
     private var server: EmbeddedServer<CIOApplicationEngine, CIOApplicationEngine.Configuration>? = null
     private val nsdRegistrar = NsdServiceRegistrar(context)
@@ -83,7 +85,7 @@ class WebServerManager(
                 server = startWebServer(port = port, host = host) {
                     configureWebApi(
                         context, chatService, conversationRepo, folderRepo, settingsStore,
-                        filesManager, workspaceRepository, skillManager
+                        filesManager, workspaceRepository, skillManager, providerManager
                     )
                 }.start(wait = false)
 

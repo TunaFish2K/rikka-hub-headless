@@ -1,4 +1,5 @@
 import * as React from "react";
+import { useTranslation } from "react-i18next";
 import { useNavigate, useParams } from "react-router";
 import { ArrowLeft, Bot, Save } from "lucide-react";
 import { Button } from "~/components/ui/button";
@@ -17,6 +18,7 @@ export default function SettingsAssistantEditPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const settings = useSettingsStore((state) => state.settings);
+  const { t } = useTranslation("page");
 
   const assistant = settings?.assistants.find((a) => a.id === id);
 
@@ -29,8 +31,15 @@ export default function SettingsAssistantEditPage() {
   const [contextMessageSize, setContextMessageSize] = React.useState("");
   const [streamOutput, setStreamOutput] = React.useState(false);
   const [enableMemory, setEnableMemory] = React.useState(false);
+  const [useGlobalMemory, setUseGlobalMemory] = React.useState(false);
+  const [enableRecentChatsReference, setEnableRecentChatsReference] = React.useState(false);
+  const [messageTemplate, setMessageTemplate] = React.useState("{{ message }}");
   const [enableTimeReminder, setEnableTimeReminder] = React.useState(false);
   const [allowConversationSystemPrompt, setAllowConversationSystemPrompt] = React.useState(false);
+  const [allowConversationPromptInjection, setAllowConversationPromptInjection] = React.useState(false);
+  const [background, setBackground] = React.useState("");
+  const [backgroundOpacity, setBackgroundOpacity] = React.useState("1");
+  const [useGradientBackground, setUseGradientBackground] = React.useState(false);
   const [selectedMcpServers, setSelectedMcpServers] = React.useState<string[]>([]);
   const [selectedModeInjections, setSelectedModeInjections] = React.useState<string[]>([]);
   const [selectedLorebooks, setSelectedLorebooks] = React.useState<string[]>([]);
@@ -51,8 +60,15 @@ export default function SettingsAssistantEditPage() {
     setContextMessageSize(assistant.contextMessageSize != null ? String(assistant.contextMessageSize) : "");
     setStreamOutput(assistant.streamOutput ?? false);
     setEnableMemory(assistant.enableMemory ?? false);
+    setUseGlobalMemory(assistant.useGlobalMemory ?? false);
+    setEnableRecentChatsReference(assistant.enableRecentChatsReference ?? false);
+    setMessageTemplate(assistant.messageTemplate ?? "{{ message }}");
     setEnableTimeReminder(assistant.enableTimeReminder ?? false);
     setAllowConversationSystemPrompt(assistant.allowConversationSystemPrompt ?? false);
+    setAllowConversationPromptInjection(assistant.allowConversationPromptInjection ?? false);
+    setBackground(assistant.background ?? "");
+    setBackgroundOpacity(String(assistant.backgroundOpacity ?? 1));
+    setUseGradientBackground(assistant.useGradientBackground ?? false);
     setSelectedMcpServers(assistant.mcpServers ?? []);
     setSelectedModeInjections(assistant.modeInjectionIds ?? []);
     setSelectedLorebooks(assistant.lorebookIds ?? []);
@@ -78,7 +94,7 @@ export default function SettingsAssistantEditPage() {
         if (model.type === "CHAT") {
           models.push({
             label: `${provider.name} / ${model.displayName}`,
-            value: model.modelId,
+            value: model.id,
           });
         }
       }
@@ -127,8 +143,15 @@ export default function SettingsAssistantEditPage() {
         contextMessageSize: contextMessageSize ? parseInt(contextMessageSize, 10) : undefined,
         streamOutput,
         enableMemory,
+        useGlobalMemory,
+        enableRecentChatsReference,
+        messageTemplate,
         enableTimeReminder,
         allowConversationSystemPrompt,
+        allowConversationPromptInjection,
+        background: background.trim() || undefined,
+        backgroundOpacity: Math.min(1, Math.max(0, parseFloat(backgroundOpacity) || 0)),
+        useGradientBackground,
         mcpServers: selectedMcpServers,
         modeInjectionIds: selectedModeInjections,
         lorebookIds: selectedLorebooks,
@@ -306,6 +329,7 @@ export default function SettingsAssistantEditPage() {
               <label className="cursor-pointer text-sm font-medium">Enable Memory</label>
               <Switch checked={enableMemory} onCheckedChange={setEnableMemory} />
             </div>
+            {enableMemory && <><div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.assistant_full.global_memory")}</label><Switch checked={useGlobalMemory} onCheckedChange={setUseGlobalMemory} /></div><div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.assistant_full.recent_chats")}</label><Switch checked={enableRecentChatsReference} onCheckedChange={setEnableRecentChatsReference} /></div></>}
             <Separator />
             <div className="flex items-center justify-between">
               <label className="cursor-pointer text-sm font-medium">Enable Time Reminder</label>
@@ -316,8 +340,14 @@ export default function SettingsAssistantEditPage() {
               <label className="cursor-pointer text-sm font-medium">Allow Conversation System Prompt</label>
               <Switch checked={allowConversationSystemPrompt} onCheckedChange={setAllowConversationSystemPrompt} />
             </div>
+            <Separator />
+            <div className="flex items-center justify-between"><label className="cursor-pointer text-sm font-medium">{t("settings.assistant_full.conversation_injection")}</label><Switch checked={allowConversationPromptInjection} onCheckedChange={setAllowConversationPromptInjection} /></div>
           </CardContent>
         </Card>
+
+        <Card><CardHeader><CardTitle className="text-base">{t("settings.assistant_full.message_processing")}</CardTitle></CardHeader><CardContent className="space-y-4"><div className="grid gap-2"><label className="text-sm font-medium">{t("settings.assistant_full.message_template")}</label><Textarea value={messageTemplate} onChange={(event) => setMessageTemplate(event.target.value)} rows={4} /></div></CardContent></Card>
+
+        <Card><CardHeader><CardTitle className="text-base">{t("settings.assistant_full.background")}</CardTitle></CardHeader><CardContent className="space-y-4"><div className="grid gap-2"><label className="text-sm font-medium">{t("settings.assistant_full.background_url")}</label><Input value={background} onChange={(event) => setBackground(event.target.value)} placeholder="https://..." /></div><div className="grid gap-2"><label className="text-sm font-medium">{t("settings.assistant_full.background_opacity")}</label><Input type="number" min={0} max={1} step={0.05} value={backgroundOpacity} onChange={(event) => setBackgroundOpacity(event.target.value)} className="w-32" /></div><div className="flex items-center justify-between"><label className="text-sm font-medium">{t("settings.assistant_full.gradient")}</label><Switch checked={useGradientBackground} onCheckedChange={setUseGradientBackground} /></div></CardContent></Card>
 
         <Card>
           <CardHeader><CardTitle className="text-base">Headless Extensions</CardTitle></CardHeader>

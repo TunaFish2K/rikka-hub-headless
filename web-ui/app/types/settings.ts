@@ -99,6 +99,8 @@ export interface AssistantProfile {
   contextMessageSize?: number;
   streamOutput?: boolean;
   enableMemory?: boolean;
+  useGlobalMemory?: boolean;
+  enableRecentChatsReference?: boolean;
   systemPrompt?: string;
   messageTemplate?: string;
   presetMessages?: string[];

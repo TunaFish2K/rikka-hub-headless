@@ -12,6 +12,7 @@ import kotlinx.serialization.json.JsonNull
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.jsonObject
 import me.rerere.ai.provider.BuiltInTools
+import me.rerere.ai.provider.ProviderManager
 import me.rerere.ai.provider.ModelType
 import me.rerere.rikkahub.data.datastore.Settings
 import me.rerere.rikkahub.data.datastore.SettingsStore
@@ -31,12 +32,23 @@ import me.rerere.rikkahub.web.dto.UpdateSearchServiceRequest
 import java.util.Locale
 
 fun Route.settingsRoutes(
-    settingsStore: SettingsStore
+    settingsStore: SettingsStore,
+    providerManager: ProviderManager,
 ) {
     route("/settings") {
         get {
             val settings = settingsStore.settingsFlow.value
             call.respond(HttpStatusCode.OK, settings)
+        }
+
+        get("/provider/{id}/models") {
+            val providerId = call.parameters["id"]?.toUuid("id")
+                ?: throw BadRequestException("Missing provider id")
+            val providerSetting = settingsStore.settingsFlow.value.providers
+                .firstOrNull { it.id == providerId }
+                ?: throw NotFoundException("Provider not found")
+            val models = providerManager.getProviderByType(providerSetting).listModels(providerSetting)
+            call.respond(HttpStatusCode.OK, models)
         }
 
         patch {
